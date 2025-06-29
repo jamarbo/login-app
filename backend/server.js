@@ -50,6 +50,23 @@ app.post("/login", async (req, res) => {
 });
 
 
+app.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    await pool.query(
+      "INSERT INTO usuario (username, email, password, activo) VALUES ($1, $2, $3, true)",
+      [username, email, password]
+    );
+    res.json({ message: "Usuario registrado exitosamente" });
+  } catch (error) {
+    console.error("Error en registro:", error);
+    res.status(500).json({ message: "Error al registrar usuario" });
+  }
+});
+
+
+
 // 🧩 Esta es la línea que debes agregar para servir /login
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));

@@ -8,16 +8,37 @@ window.onload = async () => {
   }
 };
 
-async function login() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+function showForm(form) {
+  document.getElementById("login-form").classList.remove("active");
+  document.getElementById("register-form").classList.remove("active");
+  document.getElementById(`${form}-form`).classList.add("active");
+}
 
-  const response = await fetch("http://localhost:3000/login", {
+async function login() {
+  const username = document.getElementById("login-username").value;
+  const password = document.getElementById("login-password").value;
+
+  const res = await fetch("http://localhost:3000/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
 
-  const result = await response.json();
-  document.getElementById("login-message").innerText = result.message;
+  const data = await res.json();
+  document.getElementById("login-message").innerText = data.message;
+}
+
+async function register() {
+  const username = document.getElementById("register-username").value;
+  const email = document.getElementById("register-email").value;
+  const password = document.getElementById("register-password").value;
+
+  const res = await fetch("http://localhost:3000/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, email, password }),
+  });
+
+  const data = await res.json();
+  document.getElementById("register-message").innerText = data.message;
 }

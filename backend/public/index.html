@@ -2,18 +2,37 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <title>Login y Registro</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="login-container">
-    <h2>Login</h2>
-    <p id="db-status">Verificando conexión...</p>
-    <input type="text" id="username" placeholder="Usuario">
-    <input type="password" id="password" placeholder="Contraseña">
-    <button onclick="login()">Iniciar sesión</button>
-    <p id="login-message"></p>
+  <div class="container">
+    <div class="tabs">
+      <button onclick="showForm('login')">Login</button>
+      <button onclick="showForm('register')">Registro</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-form" class="form active">
+      <h2>Login</h2>
+      <p id="db-status">Verificando conexión...</p>
+      <input type="text" id="login-username" placeholder="Usuario">
+      <input type="password" id="login-password" placeholder="Contraseña">
+      <button onclick="login()">Iniciar sesión</button>
+      <p id="login-message"></p>
+    </div>
+
+    <!-- REGISTRO -->
+    <div id="register-form" class="form">
+      <h2>Registro</h2>
+      <input type="text" id="register-username" placeholder="Usuario">
+      <input type="email" id="register-email" placeholder="Correo">
+      <input type="password" id="register-password" placeholder="Contraseña">
+      <button onclick="register()">Registrarse</button>
+      <p id="register-message"></p>
+    </div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
