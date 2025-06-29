@@ -19,6 +19,11 @@ app.use(bodyParser.json());
 // Servir archivos estáticos desde /backend/public
 app.use(express.static(path.join(__dirname, "public")));
 
+// Redirigir la raíz a index.html
+app.get("/", (req, res) => {
+  res.redirect("/index.html");
+});
+
 // Endpoint para verificar conexión a la base de datos
 app.get("/check-connection", async (req, res) => {
   try {
@@ -37,14 +42,13 @@ app.post("/login", async (req, res) => {
       "SELECT * FROM usuario WHERE username = $1 AND password = $2",
       [username, password]
     );
-
     if (result.rows.length > 0) {
       res.json({ message: "Login exitoso" });
     } else {
       res.json({ message: "Login fallido" });
     }
   } catch (error) {
-    console.error("Error en la consulta de login:", error); // ✅ Aquí ya funciona
+    console.error("Error en la consulta de login:", error);
     res.status(500).json({ message: "Error al procesar login" });
   }
 });
@@ -63,15 +67,17 @@ app.post("/register", async (req, res) => {
   }
 });
 
-
-
-
 // 🧩 Esta es la línea que debes agregar para servir /login
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// Redirigir cualquier ruta desconocida a index.html (SPA)
+app.get("*", (req, res) => {
+  res.redirect("/index.html");
+});
+
 // Escuchar en el puerto 3000
 app.listen(PORT, () => {
-  console.log(`✅ Servidor iniciado en http://localhost:${PORT}/login`);
+  console.log(`Servidor iniciado en  http://localhost:${PORT}/index.html`);
 });
