@@ -1,12 +1,25 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 import { pool } from "./db.js";
 
 const app = express();
+const PORT = 3000;
+
+// Necesario para usar __dirname con ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
+// Servir archivos estáticos desde /backend/public
+app.use(express.static(path.join(__dirname, "public")));
+
+// Endpoint para verificar conexión a la base de datos
 app.get("/check-connection", async (req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -16,11 +29,12 @@ app.get("/check-connection", async (req, res) => {
   }
 });
 
+// Endpoint de login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
     const result = await pool.query(
-      "SELECT * FROM public.usuario WHERE username = $1 AND password = $2",
+      "SELECT * FROM usuario WHERE username = $1 AND password = $2",
       [username, password]
     );
 
@@ -29,12 +43,19 @@ app.post("/login", async (req, res) => {
     } else {
       res.json({ message: "Login fallido" });
     }
-  } catch {
+  } catch (error) {
+    console.error("Error en la consulta de login:", error); // ✅ Aquí ya funciona
     res.status(500).json({ message: "Error al procesar login" });
   }
 });
 
-const PORT = 3000;
+
+// 🧩 Esta es la línea que debes agregar para servir /login
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Escuchar en el puerto 3000
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`✅ Servidor iniciado en http://localhost:${PORT}/login`);
 });
