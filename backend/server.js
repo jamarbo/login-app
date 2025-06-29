@@ -49,21 +49,20 @@ app.post("/login", async (req, res) => {
   }
 });
 
-
 app.post("/register", async (req, res) => {
-  const { username, email, password } = req.body;
-
+  const { id, username, email, password } = req.body;
   try {
     await pool.query(
-      "INSERT INTO usuario (username, email, password, activo) VALUES ($1, $2, $3, true)",
-      [username, email, password]
+      `INSERT INTO usuario (id, username, email, password) VALUES ($1, $2, $3, $4)`,
+      [id, username, email, password]
     );
-    res.json({ message: "Usuario registrado exitosamente" });
+    res.json({ message: "Registro exitoso" });
   } catch (error) {
     console.error("Error en registro:", error);
     res.status(500).json({ message: "Error al registrar usuario" });
   }
 });
+
 
 
 

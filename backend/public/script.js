@@ -29,16 +29,17 @@ async function login() {
 }
 
 async function register() {
+  const id = parseInt(document.getElementById("register-id").value);
   const username = document.getElementById("register-username").value;
   const email = document.getElementById("register-email").value;
   const password = document.getElementById("register-password").value;
 
-  const res = await fetch("http://localhost:3000/register", {
+  const response = await fetch("http://localhost:3000/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, email, password }),
+    body: JSON.stringify({ id, username, email, password }),
   });
 
-  const data = await res.json();
-  document.getElementById("register-message").innerText = data.message;
+  const result = await response.json();
+  document.getElementById("register-message").innerText = result.message;
 }
