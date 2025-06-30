@@ -46,6 +46,9 @@ async function login() {
       passwordInput.value = "";
     }
   } catch (e) {
+    console.error("Error al iniciar sesión:", e);
+    console.log("Error al iniciar sesión:", e);
+    // Manejo de errores al iniciar sesión    
     updateStatus("login-message", "Error al iniciar sesión", "error");
     usernameInput.value = "";
     passwordInput.value = "";
