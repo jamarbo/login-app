@@ -2,9 +2,9 @@ window.onload = async () => {
   try {
     const res = await fetch("http://localhost:3000/check-connection");
     const data = await res.json();
-    document.getElementById("db-status").innerText = data.message;
+    updateStatus("db-status", data.message, "success");
   } catch (e) {
-    document.getElementById("db-status").innerText = "Error conectando con la base de datos";
+    updateStatus("db-status", "Error conectando con la base de datos", "error");
   }
 };
 
@@ -18,14 +18,26 @@ async function login() {
   const username = document.getElementById("login-username").value;
   const password = document.getElementById("login-password").value;
 
-  const res = await fetch("http://localhost:3000/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
+  showLoading("login-message");
 
-  const data = await res.json();
-  document.getElementById("login-message").innerText = data.message;
+  try {
+    const res = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await res.json();
+    updateStatus("login-message", data.message, data.success ? "success" : "error");
+
+    if (data.success) {
+      setTimeout(() => {
+        window.location.href = "profile.html";
+      }, 1000);
+    }
+  } catch (e) {
+    updateStatus("login-message", "Error al iniciar sesión", "error");
+  }
 }
 
 async function register() {
@@ -34,12 +46,30 @@ async function register() {
   const email = document.getElementById("register-email").value;
   const password = document.getElementById("register-password").value;
 
-  const response = await fetch("http://localhost:3000/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, username, email, password }),
-  });
+  showLoading("register-message");
 
-  const result = await response.json();
-  document.getElementById("register-message").innerText = result.message;
+  try {
+    const response = await fetch("http://localhost:3000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, username, email, password }),
+    });
+
+    const result = await response.json();
+    updateStatus("register-message", result.message, result.success ? "success" : "error");
+  } catch (e) {
+    updateStatus("register-message", "Error al registrar usuario", "error");
+  }
+}
+
+function showLoading(elementId) {
+  const element = document.getElementById(elementId);
+  element.innerHTML = '<div class="spinner"></div> Procesando...';
+  element.className = "loading";
+}
+
+function updateStatus(elementId, message, status) {
+  const element = document.getElementById(elementId);
+  element.innerText = message;
+  element.className = status;
 }
