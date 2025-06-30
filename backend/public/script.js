@@ -15,8 +15,10 @@ function showForm(form) {
 }
 
 async function login() {
-  const username = document.getElementById("login-username").value;
-  const password = document.getElementById("login-password").value;
+  const usernameInput = document.getElementById("login-username");
+  const passwordInput = document.getElementById("login-password");
+  const username = usernameInput.value;
+  const password = passwordInput.value;
 
   showLoading("login-message");
 
@@ -24,19 +26,28 @@ async function login() {
     const res = await fetch("http://localhost:3000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: 'include',
       body: JSON.stringify({ username, password }),
     });
 
     const data = await res.json();
-    updateStatus("login-message", data.message, data.success ? "success" : "error");
-
+    
     if (data.success) {
+      // Guardar datos del usuario en sessionStorage para uso inmediato
+      sessionStorage.setItem('userData', JSON.stringify(data.user));
+      updateStatus("login-message", "Login exitoso, redirigiendo...", "success");
       setTimeout(() => {
-        window.location.href = "profile.html";
+        window.location.href = "/profile.html";
       }, 1000);
+    } else {
+      updateStatus("login-message", data.message, "error");
+      usernameInput.value = "";
+      passwordInput.value = "";
     }
   } catch (e) {
     updateStatus("login-message", "Error al iniciar sesión", "error");
+    usernameInput.value = "";
+    passwordInput.value = "";
   }
 }
 
