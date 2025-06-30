@@ -5,11 +5,18 @@ const { Pool } = pkg;
 const isProduction = process.env.NODE_ENV === 'production';
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('¿Es producción?:', isProduction);
+console.log('Variables de entorno disponibles:', {
+  PGUSER: process.env.PGUSER,
+  PGHOST: process.env.PGHOST,
+  PGDATABASE: process.env.PGDATABASE,
+  PGPORT: process.env.PGPORT,
+  // No loggeamos PGPASSWORD por seguridad
+});
 
 const dbConfig = {
   user: isProduction ? process.env.PGUSER : (process.env.DB_USER || 'postgres'),
   host: isProduction ? process.env.PGHOST : (process.env.DB_HOST || 'localhost'),
-  database: isProduction ? process.env.PGDATABASE : (process.env.DB_NAME || 'mpslytherin'),
+  database: isProduction ? 'mpslytherin' : (process.env.DB_NAME || 'mpslytherin'),
   password: isProduction ? process.env.PGPASSWORD : (process.env.DB_PASSWORD || 'root'),
   port: parseInt(isProduction ? process.env.PGPORT : (process.env.DB_PORT || '5432')),
   ssl: isProduction ? {
