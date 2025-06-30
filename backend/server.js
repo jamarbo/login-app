@@ -11,6 +11,14 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { pool } from "./db.js";
 import cookieParser from "cookie-parser";
+import { 
+  loginLimiter, 
+  hashPassword, 
+  verifyPassword, 
+  registerValidation, 
+  loginValidation, 
+  validate 
+} from './utils/security.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,20 +61,31 @@ app.get("/check-connection", async (req, res) => {
 });
 
 // Endpoint de login
-app.post("/login", async (req, res) => {
+app.post("/login", loginLimiter, loginValidation, validate, async (req, res) => {
   const { username, password } = req.body;
   try {
-    // Primero verificamos las credenciales
+    // Primero buscamos al usuario
     const result = await pool.query(
-      "SELECT * FROM usuario WHERE username = $1 AND password = $2 AND activo = true",
-      [username, password]
+      "SELECT * FROM usuario WHERE username = $1 AND activo = true",
+      [username]
     );
     
-    if (result.rows.length > 0) {
+    if (result.rows.length === 0) {
+      return res.json({ message: "Credenciales inválidas", success: false });
+    }
+
+    // Verificar contraseña
+    const validPassword = await verifyPassword(password, result.rows[0].password);
+    
+    if (validPassword) {
       const user = result.rows[0];
-      // Actualizamos la fecha de último acceso
+      // Actualizamos la fecha de último acceso y reiniciamos intentos fallidos
       await pool.query(
-        "UPDATE usuario SET fecha_ultimo_acceso = CURRENT_TIMESTAMP WHERE id = $1",
+        `UPDATE usuario 
+         SET fecha_ultimo_acceso = CURRENT_TIMESTAMP,
+             intentos_fallidos = 0,
+             bloqueado_hasta = NULL
+         WHERE id = $1`,
         [user.id]
       );
       
@@ -81,9 +100,26 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/register", async (req, res) => {
+app.post("/register", registerValidation, validate, async (req, res) => {
   const { id, username, email, password } = req.body;
   try {
+    // Verificar si el usuario o email ya existe
+    const existingUser = await pool.query(
+      "SELECT username, email FROM usuario WHERE username = $1 OR email = $2",
+      [username, email]
+    );
+    
+    if (existingUser.rows.length > 0) {
+      const field = existingUser.rows[0].username === username ? "username" : "email";
+      return res.status(400).json({ 
+        message: `El ${field} ya está registrado`,
+        success: false
+      });
+    }
+
+    // Hash de la contraseña
+    const hashedPassword = await hashPassword(password);
+    
     await pool.query(
       `INSERT INTO usuario (
         id, 
@@ -91,9 +127,11 @@ app.post("/register", async (req, res) => {
         email, 
         password, 
         fecha_creacion,
-        activo
-      ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, true)`,
-      [id, username, email, password]
+        activo,
+        intentos_fallidos,
+        bloqueado_hasta
+      ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, true, 0, NULL)`,
+      [id, username, email, hashedPassword]
     );
     res.json({ message: "Registro exitoso", success: true });
   } catch (error) {
