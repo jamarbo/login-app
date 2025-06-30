@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -7,7 +8,12 @@ import { pool } from "./db.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// Log de variables de entorno (sin datos sensibles)
+console.log('Ambiente:', process.env.NODE_ENV);
+console.log('Puerto:', PORT);
+console.log('Host BD:', process.env.DB_HOST);
 
 // Necesario para usar __dirname con ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -15,11 +21,13 @@ const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.RENDER_EXTERNAL_URL 
+    : 'http://localhost:3000',
   credentials: true
 }));
 app.use(bodyParser.json());
-app.use(cookieParser());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // Servir archivos estáticos desde /backend/public
 app.use(express.static(path.join(__dirname, "public")));
