@@ -1,8 +1,12 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+
+// Solo cargar dotenv en desarrollo
+if (process.env.NODE_ENV !== 'production') {
+  const dotenv = await import('dotenv');
+  dotenv.config();
+}
 import path from "path";
 import { fileURLToPath } from "url";
 import { pool } from "./db.js";

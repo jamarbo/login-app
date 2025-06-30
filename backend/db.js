@@ -2,16 +2,17 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 // Log del ambiente
+const isProduction = process.env.NODE_ENV === 'production';
 console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('¿Es producción?:', process.env.NODE_ENV === 'production');
+console.log('¿Es producción?:', isProduction);
 
 const dbConfig = {
-  user: process.env.NODE_ENV === 'production' ? process.env.PGUSER : process.env.DB_USER,
-  host: process.env.NODE_ENV === 'production' ? process.env.PGHOST : process.env.DB_HOST,
-  database: process.env.NODE_ENV === 'production' ? process.env.PGDATABASE : process.env.DB_NAME,
-  password: process.env.NODE_ENV === 'production' ? process.env.PGPASSWORD : process.env.DB_PASSWORD,
-  port: parseInt(process.env.NODE_ENV === 'production' ? process.env.PGPORT : process.env.DB_PORT),
-  ssl: process.env.NODE_ENV === 'production' ? {
+  user: isProduction ? process.env.PGUSER : (process.env.DB_USER || 'postgres'),
+  host: isProduction ? process.env.PGHOST : (process.env.DB_HOST || 'localhost'),
+  database: isProduction ? process.env.PGDATABASE : (process.env.DB_NAME || 'mpslytherin'),
+  password: isProduction ? process.env.PGPASSWORD : (process.env.DB_PASSWORD || 'root'),
+  port: parseInt(isProduction ? process.env.PGPORT : (process.env.DB_PORT || '5432')),
+  ssl: isProduction ? {
     rejectUnauthorized: false
   } : false
 };
