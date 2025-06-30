@@ -60,14 +60,14 @@ function updateProfileUI(user) {
     }!`;
 
     const infoHTML = `
-      <p><strong>ID:</strong> ${user.id || "-"}</p>
-      <p><strong>Usuario:</strong> ${user.username || "-"}</p>
-      <p><strong>Email:</strong> ${user.email || "-"}</p>
-      <p><strong>Rol:</strong> ${user.rol || "Usuario"}</p>
-      <p><strong>Estado:</strong> ${user.estado || "Activo"}</p>
-      <p><strong>Último acceso:</strong> ${
+      <p><strong>ID:</strong> <span>${user.id || "-"}</span></p>
+      <p><strong>Usuario:</strong> <span>${user.username || "-"}</span></p>
+      <p><strong>Email:</strong> <span>${user.email || "-"}</span></p>
+      <p><strong>Rol:</strong> <span>${user.rol || "Usuario"}</span></p>
+      <p><strong>Estado:</strong> <span>${user.estado || "Activo"}</span></p>
+      <p><strong>Último acceso:</strong> <span>${
         user.fecha_ultimo_acceso ? new Date(user.fecha_ultimo_acceso).toLocaleString() : "N/A"
-      }</p>
+      }</span></p>
     `;
     
     document.getElementById("profile-info").innerHTML = infoHTML;
@@ -77,15 +77,27 @@ function updateProfileUI(user) {
   }
 }
 
+// Prevenir que los botones se disparen múltiples veces
+let isProcessing = false;
+
 document.getElementById("logout-btn").onclick = async () => {
-  sessionStorage.removeItem("userData");
-  await fetch("/logout", {
-    method: "POST",
-    credentials: "include",
-  });
-  window.location.href = "/";
+  if (isProcessing) return;
+  isProcessing = true;
+  
+  try {
+    sessionStorage.removeItem("userData");
+    await fetch("/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    window.location.href = "/";
+  } catch (e) {
+    console.error("Error al cerrar sesión:", e);
+    isProcessing = false;
+  }
 };
 
 document.getElementById("edit-btn").onclick = () => {
+  if (isProcessing) return;
   alert("Funcionalidad de edición de perfil próximamente.");
 };

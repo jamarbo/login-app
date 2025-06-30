@@ -2,8 +2,163 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Login y Registro</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
+      color: #f0f0f0;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 400px;
+      background: #2a2a2a;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      padding: clamp(1.5rem, 5vw, 2rem);
+      margin: 1rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tabs button {
+      flex: 1;
+      background: #1f1f1f;
+      color: #fff;
+      border: 1px solid #4f8cff;
+      padding: clamp(0.5rem, 2vw, 0.8rem);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+    }
+
+    .tabs button:hover,
+    .tabs button:focus {
+      background: #4f8cff;
+      transform: translateY(-2px);
+    }
+
+    .form {
+      display: none;
+    }
+
+    .form.active {
+      display: block;
+    }
+
+    .form h2 {
+      color: #4f8cff;
+      margin-bottom: 1rem;
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: clamp(0.6rem, 2vw, 0.8rem);
+      margin: 0.5rem 0;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      background: #1f1f1f;
+      color: #fff;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4f8cff;
+    }
+
+    button {
+      width: 100%;
+      padding: clamp(0.6rem, 2vw, 0.8rem);
+      margin: 1rem 0;
+      border: none;
+      border-radius: 6px;
+      background: #4f8cff;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+    }
+
+    button:hover,
+    button:focus {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    #db-status {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      color: #888;
+    }
+
+    #login-message,
+    #register-message {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+    }
+
+    @media (max-width: 380px) {
+      .container {
+        margin: 0.5rem;
+        padding: 1rem;
+      }
+
+      .tabs {
+        flex-direction: column;
+      }
+
+      input, button {
+        font-size: 16px; /* Previene zoom en iOS */
+      }
+    }
+
+    @media (max-height: 600px) {
+      body {
+        align-items: flex-start;
+      }
+      
+      .container {
+        margin: 0.5rem;
+      }
+    }
+
+    /* Estilos para estados de mensajes */
+    .success {
+      color: #4ade80;
+    }
+
+    .error {
+      color: #ef4444;
+    }
+
+    .loading {
+      color: #4f8cff;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -16,23 +171,22 @@
     <div id="login-form" class="form active">
       <h2>Login</h2>
       <p id="db-status">Verificando conexión...</p>
-      <input type="text" id="login-username" placeholder="Usuario">
-      <input type="password" id="login-password" placeholder="Contraseña">
+      <input type="text" id="login-username" placeholder="Usuario" autocomplete="username">
+      <input type="password" id="login-password" placeholder="Contraseña" autocomplete="current-password">
       <button onclick="login()">Iniciar sesión</button>
       <p id="login-message"></p>
     </div>
 
     <!-- REGISTRO -->
-<!-- REGISTRO -->
-<div id="register-form" class="form">
-  <h2>Registro</h2>
-  <input type="number" id="register-id" placeholder="ID">
-  <input type="text" id="register-username" placeholder="Usuario">
-  <input type="email" id="register-email" placeholder="Correo">
-  <input type="password" id="register-password" placeholder="Contraseña">
-  <button onclick="register()">Registrarse</button>
-  <p id="register-message"></p>
-</div>
+    <div id="register-form" class="form">
+      <h2>Registro</h2>
+      <input type="number" id="register-id" placeholder="ID">
+      <input type="text" id="register-username" placeholder="Usuario" autocomplete="username">
+      <input type="email" id="register-email" placeholder="Correo" autocomplete="email">
+      <input type="password" id="register-password" placeholder="Contraseña" autocomplete="new-password">
+      <button onclick="register()">Registrarse</button>
+      <p id="register-message"></p>
+    </div>
   </div>
 
   <script src="script.js"></script>

@@ -2,67 +2,78 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Perfil de Usuario</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
       color: #f0f0f0;
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
       margin: 0;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 1rem;
     }
 
     .profile-container {
-      max-width: 400px;
-      margin: 20px;
+      width: 100%;
+      max-width: 450px;
       background: #2a2a2a;
       border-radius: 12px;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-      padding: 2rem;
+      padding: clamp(1.5rem, 5vw, 2.5rem);
       text-align: center;
-      color: #f0f0f0;
+      margin: 1rem;
     }
 
     .profile-avatar {
-      width: 100px;
-      height: 100px;
+      width: clamp(80px, 15vw, 120px);
+      height: clamp(80px, 15vw, 120px);
       border-radius: 50%;
       object-fit: cover;
-      margin-bottom: 1.5rem;
+      margin: 0 auto 1.5rem;
       border: 3px solid #4f8cff;
       background: #1f1f1f;
       padding: 3px;
+      display: block;
     }
 
     .profile-welcome {
-      font-size: 1.5rem;
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
       color: #4f8cff;
       margin-bottom: 1.5rem;
       font-weight: 500;
+      word-break: break-word;
     }
 
     .profile-info {
       text-align: left;
       margin: 1.5rem 0;
       background: #1f1f1f;
-      padding: 1.5rem;
+      padding: clamp(1rem, 3vw, 1.5rem);
       border-radius: 8px;
+      overflow: hidden;
     }
 
     .profile-info p {
       margin: 0.7rem 0;
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
       color: #e0e0e0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: grid;
+      grid-template-columns: minmax(120px, auto) 1fr;
+      gap: 1rem;
       padding: 0.5rem 0;
       border-bottom: 1px solid #3a3a3a;
+      align-items: center;
     }
 
     .profile-info p:last-child {
@@ -71,15 +82,29 @@
 
     .profile-info strong {
       color: #4f8cff;
-      margin-right: 1rem;
+      white-space: nowrap;
+    }
+
+    .profile-info span {
+      word-break: break-word;
+    }
+
+    .buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.5rem;
     }
 
     #logout-btn, #edit-btn {
-      margin: 0.5rem;
-      padding: 0.8rem 1.5rem;
+      flex: 1;
+      min-width: 120px;
+      max-width: 200px;
+      padding: clamp(0.6rem, 2vw, 0.8rem) clamp(1rem, 3vw, 1.5rem);
       border: none;
       border-radius: 6px;
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
       cursor: pointer;
       transition: all 0.3s ease;
     }
@@ -105,10 +130,29 @@
       transform: translateY(-2px);
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 380px) {
+      .profile-info p {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+      }
+
+      .buttons-container {
+        flex-direction: column;
+      }
+
+      #logout-btn, #edit-btn {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-height: 600px) {
+      body {
+        align-items: flex-start;
+      }
+      
       .profile-container {
-        margin: 10px;
-        padding: 1.5rem;
+        margin: 0.5rem;
+        padding: 1rem;
       }
     }
   </style>
@@ -123,8 +167,10 @@
     <div class="profile-info" id="profile-info">
       <!-- Aquí se mostrará la información del usuario -->
     </div>
-    <button id="edit-btn">Editar perfil</button>
-    <button id="logout-btn">Cerrar sesión</button>
+    <div class="buttons-container">
+      <button id="edit-btn">Editar perfil</button>
+      <button id="logout-btn">Cerrar sesión</button>
+    </div>
   </div>
   <script src="profile.js"></script>
 </body>
