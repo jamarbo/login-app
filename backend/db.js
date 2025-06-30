@@ -46,6 +46,8 @@ pool.connect((err, client, release) => {
     release();
     if (err) {
       console.error('Error al ejecutar consulta de prueba:', err.message);
+      console.log('Error al ejecutar consulta de prueba:', err.message);
+
       return;
     }
     console.log('Conexión a la base de datos establecida correctamente:', result.rows[0]);

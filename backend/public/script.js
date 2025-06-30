@@ -4,6 +4,7 @@ window.onload = async () => {
     const data = await res.json();
     updateStatus("db-status", data.message, "success");
   } catch (e) {
+    console.log("Error conectando con la base de datos:", e);
     updateStatus("db-status", "Error conectando con la base de datos", "error");
   }
 };
