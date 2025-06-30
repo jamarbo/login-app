@@ -27,7 +27,7 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.RENDER_EXTERNAL_URL 
+    ? 'https://login-app-nd1m.onrender.com'
     : 'http://localhost:3000',
   credentials: true
 }));
@@ -161,7 +161,10 @@ app.get("*", (req, res) => {
   res.redirect("/index.html");
 });
 
-// Escuchar en el puerto 3000
+// Escuchar en el puerto especificado
 app.listen(PORT, () => {
-  console.log(`Servidor iniciado en  http://localhost:${PORT}/index.html`);
+  const url = process.env.NODE_ENV === 'production'
+    ? 'https://login-app-nd1m.onrender.com'
+    : `http://localhost:${PORT}`;
+  console.log(`Servidor iniciado en ${url}`);
 });
