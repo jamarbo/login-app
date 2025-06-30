@@ -1,6 +1,10 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
+// Log del ambiente
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('¿Es producción?:', process.env.NODE_ENV === 'production');
+
 const dbConfig = {
   user: process.env.NODE_ENV === 'production' ? process.env.PGUSER : process.env.DB_USER,
   host: process.env.NODE_ENV === 'production' ? process.env.PGHOST : process.env.DB_HOST,
@@ -14,7 +18,11 @@ const dbConfig = {
 
 // Log de configuración (sin mostrar la contraseña)
 console.log('Configuración BD:', {
-  ...dbConfig,
+  user: dbConfig.user,
+  host: dbConfig.host,
+  database: dbConfig.database,
+  port: dbConfig.port,
+  ssl: dbConfig.ssl,
   password: '****'
 });
 
