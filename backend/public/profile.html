@@ -6,59 +6,125 @@
   <title>Perfil de Usuario</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    body {
+      background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
+      color: #f0f0f0;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     .profile-container {
       max-width: 400px;
-      margin: 60px auto;
-      background: #fff;
+      margin: 20px;
+      background: #2a2a2a;
       border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-      padding: 2rem 2.5rem 2rem 2.5rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      padding: 2rem;
       text-align: center;
+      color: #f0f0f0;
     }
+
     .profile-avatar {
       width: 100px;
       height: 100px;
       border-radius: 50%;
       object-fit: cover;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       border: 3px solid #4f8cff;
-      background: #eaeaea;
+      background: #1f1f1f;
+      padding: 3px;
     }
-    .profile-info p {
-      margin: 0.5rem 0;
-      font-size: 1.1rem;
-    }
+
     .profile-welcome {
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       color: #4f8cff;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
     }
+
+    .profile-info {
+      text-align: left;
+      margin: 1.5rem 0;
+      background: #1f1f1f;
+      padding: 1.5rem;
+      border-radius: 8px;
+    }
+
+    .profile-info p {
+      margin: 0.7rem 0;
+      font-size: 1rem;
+      color: #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .profile-info p:last-child {
+      border-bottom: none;
+    }
+
+    .profile-info strong {
+      color: #4f8cff;
+      margin-right: 1rem;
+    }
+
     #logout-btn, #edit-btn {
-      margin: 1rem 0.5rem 0 0.5rem;
-      padding: 0.5rem 1.2rem;
+      margin: 0.5rem;
+      padding: 0.8rem 1.5rem;
       border: none;
       border-radius: 6px;
-      background: #4f8cff;
-      color: #fff;
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.3s ease;
     }
-    #logout-btn:hover, #edit-btn:hover {
+
+    #edit-btn {
+      background: #4f8cff;
+      color: #fff;
+    }
+
+    #logout-btn {
+      background: #1f1f1f;
+      color: #fff;
+      border: 1px solid #4f8cff;
+    }
+
+    #edit-btn:hover {
       background: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    #logout-btn:hover {
+      background: #2a2a2a;
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 480px) {
+      .profile-container {
+        margin: 10px;
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="profile-container">
-    <img src="https://ui-avatars.com/api/?name=Usuario&background=4f8cff&color=fff&size=100" alt="Avatar" class="profile-avatar" id="profile-avatar">
+    <img src="https://ui-avatars.com/api/?name=Usuario&background=4f8cff&color=fff&size=100" 
+         alt="Avatar" 
+         class="profile-avatar" 
+         id="profile-avatar">
     <div class="profile-welcome" id="profile-welcome">¡Bienvenido!</div>
     <div class="profile-info" id="profile-info">
       <!-- Aquí se mostrará la información del usuario -->
     </div>
     <button id="edit-btn">Editar perfil</button>
     <button id="logout-btn">Cerrar sesión</button>
-    <div id="last-login" style="margin-top:1rem;color:#888;font-size:0.95rem;"></div>
   </div>
   <script src="profile.js"></script>
 </body>
