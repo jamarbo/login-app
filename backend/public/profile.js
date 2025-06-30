@@ -1,3 +1,8 @@
+// Determinar la URL base según el ambiente
+const baseUrl = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000'
+  : 'https://login-app-nd1m.onrender.com';
+
 // profile.js
 window.onload = async () => {
   // Intentar mostrar datos inmediatamente desde sessionStorage
@@ -15,7 +20,7 @@ window.onload = async () => {
   // Verificar sesión con el servidor
   try {
     console.log("Solicitando datos al servidor...");
-    const res = await fetch("/profile", {
+    const res = await fetch(`${baseUrl}/profile`, {
       credentials: "include",
       headers: {
         Accept: "application/json",

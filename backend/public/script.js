@@ -1,10 +1,15 @@
+// Determinar la URL base según el ambiente
+const baseUrl = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000'
+  : 'https://login-app-nd1m.onrender.com';
+
 window.onload = async () => {
   try {
-    const res = await fetch("http://localhost:3000/check-connection");
+    const res = await fetch(`${baseUrl}/check-connection`);
     const data = await res.json();
     updateStatus("db-status", data.message, "success");
   } catch (e) {
-    console.log("Error conectando con la base de datos:", e);
+    console.error("Error conectando con la base de datos:", e);
     updateStatus("db-status", "Error conectando con la base de datos", "error");
   }
 };
@@ -24,7 +29,7 @@ async function login() {
   showLoading("login-message");
 
   try {
-    const res = await fetch("http://localhost:3000/login", {
+    const res = await fetch(`${baseUrl}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: 'include',
@@ -64,7 +69,7 @@ async function register() {
   showLoading("register-message");
 
   try {
-    const response = await fetch("http://localhost:3000/register", {
+    const response = await fetch(`${baseUrl}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, username, email, password }),
