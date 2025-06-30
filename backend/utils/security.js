@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 

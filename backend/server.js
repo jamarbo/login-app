@@ -200,9 +200,19 @@ app.get("*", (req, res) => {
 });
 
 // Escuchar en el puerto especificado
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   const url = process.env.NODE_ENV === 'production'
     ? 'https://login-app-nd1m.onrender.com'
     : `http://localhost:${PORT}`;
   console.log(`Servidor iniciado en ${url}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`El puerto ${PORT} está en uso. Intentando otro puerto...`);
+    server.close();
+    app.listen(0, () => {
+      console.log(`Servidor iniciado en http://localhost:${server.address().port}`);
+    });
+  } else {
+    console.error('Error al iniciar el servidor:', err);
+  }
 });
