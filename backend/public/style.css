@@ -86,3 +86,30 @@ button:hover {
     transform: rotate(360deg);
   }
 }
+
+/* Tema claro */
+body.light-theme {
+  background: #f5f6fa;
+  color: #222;
+}
+
+body.light-theme .profile-container {
+  background: #fff;
+  color: #222;
+}
+
+/* Tema oscuro */
+body.dark-theme {
+  background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
+  color: #f0f0f0;
+}
+
+body.dark-theme .profile-container {
+  background: #2a2a2a;
+  color: #f0f0f0;
+}
+
+/* Transición suave */
+body, .profile-container {
+  transition: background 0.3s, color 0.3s;
+}
