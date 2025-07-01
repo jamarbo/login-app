@@ -9,10 +9,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 import path from "path";
 import { fileURLToPath } from "url";
-import { pool } from "./db.js";
+import * as db from "./db.js";
 import cookieParser from "cookie-parser";
 import { 
-  loginLimiter, 
+  loginLimiter,  
   hashPassword, 
   verifyPassword, 
   registerValidation, 
@@ -53,20 +53,46 @@ app.get("/", (req, res) => {
 // Endpoint para verificar conexión a la base de datos
 app.get("/check-connection", async (req, res) => {
   try {
-    await pool.query("SELECT 1");
-    res.json({ message: "Conexión a la base de datos exitosa" });
-  } catch {
-    res.status(500).json({ message: "Error de conexión a la base de datos" });
+    // Verificar conexión a la base de datos
+    const dbResult = await db.pool.query("SELECT 1 as connection_test");
+    
+    // Verificar qué tablas existen
+    const tables = await db.pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name
+    `);
+    
+    // Obtener el nombre de la tabla de usuarios
+    const userTableName = await db.getUserTableName();
+    
+    // Verificar si la tabla login_history existe
+    const historyTableExists = tables.rows.some(row => row.table_name === 'login_history');
+    
+    res.json({ 
+      message: "Conexión a la base de datos exitosa",
+      tables: tables.rows.map(row => row.table_name),
+      userTable: userTableName,
+      loginHistoryExists: historyTableExists,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error al verificar la conexión:", error);
+    res.status(500).json({ message: "Error al verificar la conexión" });
   }
 });
 
 // Endpoint de login
 app.post("/login", loginLimiter, loginValidation, validate, async (req, res) => {
   const { username, password } = req.body;
+  let user = null;
+  
   try {
     // Primero buscamos al usuario
-    const result = await pool.query(
-      "SELECT * FROM usuario WHERE username = $1 AND activo = true",
+    const tableName = await db.getUserTableName();
+    const result = await db.pool.query(
+      `SELECT * FROM ${tableName} WHERE username = $1 AND activo = true`,
       [username]
     );
     
@@ -75,13 +101,13 @@ app.post("/login", loginLimiter, loginValidation, validate, async (req, res) => 
     }
 
     // Verificar contraseña
-    const validPassword = await verifyPassword(password, result.rows[0].password);
+    user = result.rows[0];
+    const validPassword = await verifyPassword(password, user.password);
     
     if (validPassword) {
-      const user = result.rows[0];
       // Actualizamos la fecha de último acceso y reiniciamos intentos fallidos
-      await pool.query(
-        `UPDATE usuario 
+      await db.pool.query(
+        `UPDATE ${tableName} 
          SET fecha_ultimo_acceso = CURRENT_TIMESTAMP,
              intentos_fallidos = 0,
              bloqueado_hasta = NULL
@@ -89,9 +115,15 @@ app.post("/login", loginLimiter, loginValidation, validate, async (req, res) => 
         [user.id]
       );
       
+      // Registrar acceso exitoso en historial
+      await db.addLoginHistory(user.id, true, req.ip);
+      
       res.cookie("user", user.id, { httpOnly: true });
       res.json({ message: "Login exitoso", success: true });
     } else {
+      // Registrar intento fallido en historial
+      await db.addLoginHistory(user.id, false, req.ip);
+      
       res.json({ message: "Login fallido", success: false });
     }
   } catch (error) {
@@ -104,7 +136,7 @@ app.post("/register", registerValidation, validate, async (req, res) => {
   const { id, username, email, password } = req.body;
   try {
     // Verificar si el usuario o email ya existe
-    const existingUser = await pool.query(
+    const existingUser = await db.pool.query(
       "SELECT username, email FROM usuario WHERE username = $1 OR email = $2",
       [username, email]
     );
@@ -120,7 +152,7 @@ app.post("/register", registerValidation, validate, async (req, res) => {
     // Hash de la contraseña
     const hashedPassword = await hashPassword(password);
     
-    await pool.query(
+    await db.pool.query(
       `INSERT INTO usuario (
         id, 
         username, 
@@ -153,7 +185,7 @@ app.get("/profile", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const result = await db.pool.query(
       `SELECT 
         id, 
         username, 
@@ -193,6 +225,89 @@ app.post("/logout", (req, res) => {
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+// Middleware de autenticación
+const authenticateToken = (req, res, next) => {
+  const token = req.cookies.user;
+  if (!token) {
+    return res.status(401).json({ message: "No autenticado" });
+  }
+  req.user = { id: token }; // En este caso simple, el token es el ID del usuario
+  next();
+};
+
+// Endpoint para obtener historial de accesos
+app.get('/api/login-history', authenticateToken, async (req, res) => {
+  try {
+    // Asegurarnos de enviar JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    const userId = req.user.id;
+    console.log(`Obteniendo historial para usuario ID: ${userId}`);
+    
+    // Verificar si el usuario existe
+    const userTableName = await db.getUserTableName();
+    const userCheck = await db.pool.query(`SELECT id FROM ${userTableName} WHERE id = $1`, [userId]);
+    
+    if (userCheck.rows.length === 0) {
+      console.log(`Usuario con ID ${userId} no encontrado`);
+      return res.json({
+        success: false,
+        message: 'Usuario no encontrado',
+        history: []
+      });
+    }
+    
+    // Obtener el historial
+    const history = await db.getLoginHistory(userId, 10);
+    console.log(`Se encontraron ${history.length} registros de historial`);
+    
+    // Formatear las fechas para JSON
+    const formattedHistory = history.map(item => ({
+      ...item,
+      login_time: item.login_time instanceof Date ? item.login_time.toISOString() : item.login_time
+    }));
+    
+    res.json({
+      success: true,
+      history: formattedHistory
+    });
+  } catch (error) {
+    console.error('Error al obtener historial:', error);
+    res.json({
+      success: false,
+      message: 'Error al obtener historial',
+      error: error.message,
+      history: []
+    });
+  }
+});
+
+// Endpoint de diagnóstico para verificar API de historial
+app.get('/api/check-history-endpoint', authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    userId: req.user.id,
+    message: 'Endpoint de diagnóstico funcionando correctamente',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Inicializar la base de datos al inicio
+(async () => {
+  try {
+    const connected = await db.testConnection();
+    if (connected) {
+      console.log('Conexión a la base de datos exitosa');
+      await db.initializeTables();
+      console.log('Tablas inicializadas correctamente');
+    } else {
+      console.error('No se pudo establecer conexión con la base de datos');
+    }
+  } catch (error) {
+    console.error('Error al inicializar tablas:', error);
+  }
+})();
 
 // Redirigir cualquier ruta desconocida a index.html (SPA)
 app.get("*", (req, res) => {

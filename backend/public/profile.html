@@ -130,6 +130,84 @@
       transform: translateY(-2px);
     }
 
+    /* Estilos para el historial de accesos */
+    .login-history {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #1f1f1f;
+      border-radius: 8px;
+      text-align: left;
+    }
+    
+    .login-history h3 {
+      font-size: 1rem;
+      color: #4f8cff;
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+    
+    .history-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+    
+    .history-list p {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+    
+    .history-list .history-item {
+      padding: 0.5rem;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .history-list .history-item:last-child {
+      border-bottom: none;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    .text-error {
+      color: #ff6b6b;
+    }
+    
+    .text-success {
+      color: #4caf50;
+    }
+    
+    .secondary-btn {
+      background-color: #555;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    
+    .secondary-btn:hover {
+      background-color: #666;
+    }
+    
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 4px;
+      display: none;
+      z-index: 1000;
+    }
+
     @media (max-width: 380px) {
       .profile-info p {
         grid-template-columns: 1fr;
@@ -167,11 +245,26 @@
     <div class="profile-info" id="profile-info">
       <!-- Aquí se mostrará la información del usuario -->
     </div>
+    
+    <!-- Sección de historial de accesos -->
+    <div class="login-history">
+      <h3>Historial de Accesos</h3>
+      <div id="loginHistoryList" class="history-list">
+        <p class="text-center">Cargando historial...</p>
+      </div>
+      <!-- Botón de diagnóstico para depurar problemas -->
+      <button id="diagnose-btn" class="secondary-btn">Diagnosticar Historial</button>
+    </div>
+    
     <div class="buttons-container">
       <button id="edit-btn">Editar perfil</button>
       <button id="logout-btn">Cerrar sesión</button>
     </div>
   </div>
+  
+  <!-- Notificaciones -->
+  <div id="notification" class="notification"></div>
+  
   <script src="profile.js"></script>
 </body>
 </html>

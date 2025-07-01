@@ -50,6 +50,9 @@ window.onload = async () => {
     console.error("Error al cargar el perfil:", e);
     document.getElementById("profile-info").innerText = "Error cargando el perfil.";
   }
+
+  // Cargar historial de accesos
+  await loadLoginHistory();
 };
 
 function updateProfileUI(user) {
@@ -77,10 +80,140 @@ function updateProfileUI(user) {
     
     document.getElementById("profile-info").innerHTML = infoHTML;
     console.log("UI actualizada exitosamente");
+    
+    // Cargar el historial de accesos
+    loadLoginHistory();
   } catch (e) {
     console.error("Error al actualizar la UI:", e);
   }
 }
+
+// Función para cargar el historial de accesos
+async function loadLoginHistory() {
+  const historyList = document.getElementById('loginHistoryList');
+  if (!historyList) return;
+  
+  historyList.innerHTML = '<p class="text-center">Cargando historial...</p>';
+  
+  try {
+    const response = await fetch(`${baseUrl}/api/login-history`, {
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      historyList.innerHTML = `<p class="text-center text-error">${data.error || 'Error al cargar historial'}</p>`;
+      return;
+    }
+    
+    if (!data.history || !data.history.length) {
+      historyList.innerHTML = '<p class="text-center">No hay registros de acceso</p>';
+      return;
+    }
+    
+    // Mostrar historial
+    let historyHTML = '';
+    data.history.forEach(item => {
+      const date = new Date(item.login_time).toLocaleString();
+      const status = item.success ? 
+        '<span class="text-success">Exitoso</span>' : 
+        '<span class="text-error">Fallido</span>';
+      
+      historyHTML += `
+        <div class="history-item">
+          <span>${date}</span>
+          <span>${status}</span>
+        </div>
+      `;
+    });
+    
+    historyList.innerHTML = historyHTML;
+  } catch (error) {
+    console.error('Error al cargar historial:', error);
+    historyList.innerHTML = `<p class="text-center text-error">Error: ${error.message}</p>`;
+  }
+}
+
+// Función para mostrar notificaciones
+function showNotification(message, isError = false) {
+  const notification = document.getElementById('notification');
+  if (!notification) return;
+  
+  notification.textContent = message;
+  notification.style.backgroundColor = isError ? '#ff6b6b' : '#4caf50';
+  notification.style.display = 'block';
+  
+  setTimeout(() => {
+    notification.style.display = 'none';
+  }, 3000);
+}
+
+// Configurar el botón de diagnóstico
+document.getElementById('diagnose-btn').addEventListener('click', async () => {
+  const historyList = document.getElementById('loginHistoryList');
+  historyList.innerHTML = '<p class="text-center">Ejecutando diagnóstico...</p>';
+  
+  try {
+    // Mostrar cookies disponibles
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    historyList.innerHTML += `<p><strong>Cookies disponibles (${cookies.length}):</strong> ${cookies.join(' | ') || 'Ninguna'}</p>`;
+    
+    // Verificar conexión primero
+    const checkResponse = await fetch(`${baseUrl}/check-connection`);
+    const checkData = await checkResponse.json();
+    
+    historyList.innerHTML += `
+      <p><strong>Conexión a BD:</strong> ${checkData.message}</p>
+      <p><strong>Tablas disponibles:</strong> ${checkData.tables ? checkData.tables.join(', ') : 'No hay información'}</p>
+    `;
+    
+    // Probar el endpoint de historial
+    try {
+      const response = await fetch(`${baseUrl}/api/login-history`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      const responseText = await response.text();
+      
+      try {
+        // Intentar parsear como JSON
+        const data = JSON.parse(responseText);
+        historyList.innerHTML += `
+          <p class="text-success"><strong>✓ Respuesta JSON válida</strong></p>
+          <pre style="max-height:150px;overflow:auto;background:#222;padding:10px;font-size:12px;">
+${JSON.stringify(data, null, 2)}
+          </pre>
+        `;
+        
+        // Recargar el historial después de un diagnóstico exitoso
+        setTimeout(() => loadLoginHistory(), 3000);
+      } catch (parseError) {
+        // Si no es JSON válido, mostrar el texto
+        historyList.innerHTML += `
+          <p class="text-error"><strong>✗ Respuesta no es JSON válido</strong></p>
+          <p><strong>Status:</strong> ${response.status}</p>
+          <p><strong>Content-Type:</strong> ${response.headers.get('Content-Type')}</p>
+          <pre style="max-height:150px;overflow:auto;background:#222;padding:10px;font-size:12px;">
+${responseText.substring(0, 500)}${responseText.length > 500 ? '...' : ''}
+          </pre>
+        `;
+      }
+    } catch (error) {
+      historyList.innerHTML += `<p class="text-error"><strong>Error en petición:</strong> ${error.message}</p>`;
+    }
+  } catch (error) {
+    console.error('Error durante diagnóstico:', error);
+    historyList.innerHTML += `<p class="text-error"><strong>Error:</strong> ${error.message}</p>`;
+  }
+});
 
 // Prevenir que los botones se disparen múltiples veces
 let isProcessing = false;
