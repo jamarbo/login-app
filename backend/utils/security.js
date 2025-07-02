@@ -5,7 +5,7 @@ import { body, validationResult } from 'express-validator';
 // Configuración de rate limiting
 export const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // 5 intentos
+    max: 10, // 5 intentos
     message: { 
         message: "Demasiados intentos de inicio de sesión. Por favor, intente nuevamente en 15 minutos.",
         success: false
