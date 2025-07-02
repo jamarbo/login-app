@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+// Importamos multer para manejar la subida de archivos
+import multer from "multer";
+import fs from "fs";
 
 // Solo cargar dotenv en desarrollo
 if (process.env.NODE_ENV !== 'production') {
@@ -23,14 +26,43 @@ import {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Log de variables de entorno (sin datos sensibles)
-console.log('Ambiente:', process.env.NODE_ENV);
-console.log('Puerto:', PORT);
-console.log('Host BD:', process.env.DB_HOST);
-
 // Necesario para usar __dirname con ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Crear la carpeta de avatares si no existe
+const avatarDir = path.join(__dirname, 'public', 'avatars');
+if (!fs.existsSync(avatarDir)) {
+  fs.mkdirSync(avatarDir, { recursive: true });
+}
+
+// Configuración para multer (subida de archivos)
+const avatarStorage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    const avatarDir = path.join(__dirname, 'public', 'avatars');
+    cb(null, avatarDir);
+  },
+  filename: function(req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    cb(null, req.user.id + extension); // Usa el ID del usuario como nombre
+  }
+});
+
+const upload = multer({ 
+  storage: avatarStorage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // Límite de 2MB
+  fileFilter: function(req, file, cb) {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Solo se permiten imágenes (jpg, jpeg, png, gif)'));
+  }
+});
 
 // Middleware
 app.use(cors({
@@ -178,6 +210,7 @@ app.post("/register", registerValidation, validate, async (req, res) => {
   }
 });
 
+// Endpoint para modificar el endpoint /profile y añadir avatar_url
 app.get("/profile", async (req, res) => {
   const userId = req.cookies.user;
   if (!userId) {
@@ -194,7 +227,8 @@ app.get("/profile", async (req, res) => {
         fecha_creacion,
         activo,
         intentos_fallidos,
-        bloqueado_hasta
+        bloqueado_hasta,
+        avatar_url
       FROM usuario 
       WHERE id = $1 AND activo = true`,
       [userId]
@@ -204,7 +238,8 @@ app.get("/profile", async (req, res) => {
         ...result.rows[0],
         estado: result.rows[0].activo ? "Activo" : "Inactivo",
         rol: "Usuario", // Por defecto todos son tipo usuario
-        lastAccess: result.rows[0].fecha_ultimo_acceso // Para mantener compatibilidad con el frontend
+        lastAccess: result.rows[0].fecha_ultimo_acceso, // Para mantener compatibilidad con el frontend
+        avatarUrl: result.rows[0].avatar_url // Añadimos la URL del avatar
       };
       res.json({ success: true, user });
     } else {
@@ -291,6 +326,36 @@ app.get('/api/check-history-endpoint', authenticateToken, (req, res) => {
     message: 'Endpoint de diagnóstico funcionando correctamente',
     timestamp: new Date().toISOString()
   });
+});
+
+// Endpoint para subir avatar
+app.post('/api/upload-avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No se ha subido ningún archivo' 
+      });
+    }
+    
+    // La ruta del avatar relativa a la carpeta public
+    const avatarUrl = `/avatars/${req.file.filename}`;
+    
+    // Actualizar la URL del avatar en la base de datos
+    await db.updateUserAvatar(req.user.id, avatarUrl);
+    
+    res.json({ 
+      success: true, 
+      message: 'Avatar actualizado correctamente',
+      avatarUrl: avatarUrl
+    });
+  } catch (error) {
+    console.error('Error al subir avatar:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al subir avatar' 
+    });
+  }
 });
 
 // Inicializar la base de datos al inicio

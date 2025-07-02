@@ -210,3 +210,38 @@ export async function getLoginHistory(userId, limit = 10) {
     return [];
   }
 }
+
+// Función para actualizar la URL del avatar del usuario
+export async function updateUserAvatar(userId, avatarUrl) {
+  try {
+    // Primero verificamos que exista la columna avatar_url
+    const columnsResult = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'usuario' AND column_name = 'avatar_url'
+    `);
+
+    // Si la columna no existe, la creamos
+    if (columnsResult.rows.length === 0) {
+      await pool.query(`ALTER TABLE usuario ADD COLUMN avatar_url VARCHAR(255)`);
+      console.log('Columna avatar_url creada en tabla usuario');
+    }
+
+    // Actualizamos el avatar_url del usuario
+    const result = await pool.query(
+      `UPDATE usuario SET avatar_url = $1 WHERE id = $2 RETURNING avatar_url`,
+      [avatarUrl, userId]
+    );
+
+    if (result.rows.length > 0) {
+      console.log(`Avatar actualizado para usuario ${userId}: ${avatarUrl}`);
+      return true;
+    } else {
+      console.error(`No se encontró el usuario ${userId} para actualizar avatar`);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error al actualizar avatar del usuario:', error);
+    throw error;
+  }
+}

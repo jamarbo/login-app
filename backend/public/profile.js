@@ -53,15 +53,75 @@ window.onload = async () => {
 
   // Cargar historial de accesos
   await loadLoginHistory();
+
+  // Configurar el toggle del formulario de avatar
+  document.getElementById('toggle-avatar-form').addEventListener('click', () => {
+    const form = document.getElementById('avatar-form');
+    form.classList.toggle('visible');
+  });
+
+  // Configurar el formulario de subida de avatar
+  document.getElementById('avatar-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('avatar-input');
+    if (!fileInput.files.length) {
+      showNotification('Por favor seleccione una imagen', true);
+      return;
+    }
+    
+    const file = fileInput.files[0];
+    if (file.size > 2 * 1024 * 1024) { // 2MB max
+      showNotification('La imagen es demasiado grande. Máximo 2MB', true);
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    try {
+      showNotification('Subiendo avatar...');
+      
+      const response = await fetch(`${baseUrl}/api/upload-avatar`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Actualizar la imagen del avatar con un parámetro de timestamp para evitar caché
+        document.getElementById('profile-avatar').src = `${result.avatarUrl}?t=${Date.now()}`;
+        showNotification('Avatar actualizado correctamente');
+        
+        // Ocultar el formulario
+        document.getElementById('avatar-form').classList.remove('visible');
+        // Limpiar el input
+        fileInput.value = '';
+      } else {
+        showNotification(result.message || 'Error al subir avatar', true);
+      }
+    } catch (error) {
+      console.error('Error al subir avatar:', error);
+      showNotification('Error de conexión al subir avatar', true);
+    }
+  });
 };
 
 function updateProfileUI(user) {
   console.log("Actualizando UI con datos:", user);
   
   try {
-    document.getElementById("profile-avatar").src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      user.username || "Usuario"
-    )}&background=4f8cff&color=fff&size=100`;
+    // Actualizar avatar si existe una URL personalizada
+    if (user.avatarUrl) {
+      document.getElementById("profile-avatar").src = user.avatarUrl;
+    } else {
+      // Usar avatar generado si no hay personalizado
+      document.getElementById("profile-avatar").src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        user.username || "Usuario"
+      )}&background=4f8cff&color=fff&size=100`;
+    }
 
     document.getElementById("profile-welcome").innerText = `¡Bienvenido${
       user.username ? ", " + user.username : ""

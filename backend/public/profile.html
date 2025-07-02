@@ -208,6 +208,58 @@
       z-index: 1000;
     }
 
+    /* Estilos para el formulario de avatar */
+    .avatar-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+      width: fit-content;
+      margin: 0 auto 1.5rem;
+    }
+
+    .avatar-edit {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 30px;
+      height: 30px;
+      background-color: #4f8cff;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      font-size: 16px;
+      color: #fff;
+      border: none;
+      padding: 0;
+    }
+
+    .avatar-edit:hover {
+      transform: scale(1.1);
+      background-color: #2563eb;
+    }
+
+    #avatar-form {
+      display: none;
+      margin-top: 1rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    #avatar-form.visible {
+      display: block;
+    }
+
+    #avatar-input {
+      margin-bottom: 10px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     @media (max-width: 380px) {
       .profile-info p {
         grid-template-columns: 1fr;
@@ -240,10 +292,22 @@
     🌓
   </button>
   <div class="profile-container">
-    <img src="https://ui-avatars.com/api/?name=Usuario&background=4f8cff&color=fff&size=100" 
-         alt="Avatar" 
-         class="profile-avatar" 
-         id="profile-avatar">
+    <div class="avatar-container">
+      <img src="https://ui-avatars.com/api/?name=Usuario&background=4f8cff&color=fff&size=100" 
+           alt="Avatar" 
+           class="profile-avatar" 
+           id="profile-avatar">
+      <button class="avatar-edit" id="toggle-avatar-form" title="Cambiar avatar">
+        ✏️
+      </button>
+    </div>
+
+    <!-- Formulario de subida de avatar -->
+    <form id="avatar-form" enctype="multipart/form-data">
+      <input type="file" id="avatar-input" name="avatar" accept="image/*">
+      <button type="submit" class="secondary-btn">Cambiar Avatar</button>
+    </form>
+
     <div class="profile-welcome" id="profile-welcome">¡Bienvenido!</div>
     <div class="profile-info" id="profile-info">
       <!-- Aquí se mostrará la información del usuario -->
