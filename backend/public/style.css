@@ -100,6 +100,13 @@ body {
   gap: 1rem;
 }
 
+.profile-info p span {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
 .profile-info strong {
   color: var(--primary-color);
 }
@@ -116,13 +123,33 @@ body {
 }
 
 .history-item {
-  padding: 0.5rem;
+  padding: 0.8rem 0.5rem;
   border-bottom: 1px solid #3a3a3a;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.3rem;
 }
+
 .history-item:last-child {
   border-bottom: none;
+}
+
+.history-item span {
+  font-size: 0.9rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.history-item .status {
+  font-weight: bold;
+}
+
+.history-item .status.success {
+  color: var(--success-color);
+}
+
+.history-item .status.failed {
+  color: var(--error-color);
 }
 
 .buttons-container {
@@ -210,6 +237,12 @@ body.light-theme .login-history {
 }
 body.light-theme .history-item {
   border-color: #e0e0e0;
+}
+body.light-theme .history-item .status.success {
+  color: #22c55e;
+}
+body.light-theme .history-item .status.failed {
+  color: #ef4444;
 }
 body.light-theme #logout-btn,
 body.light-theme .secondary-btn {

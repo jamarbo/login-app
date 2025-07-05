@@ -51,9 +51,9 @@ async function loadProfile() {
 
         listItem.innerHTML = `
           <div class="history-item">
-            <span>${date}</span>
-            <span class="status ${statusClass}">${status}</span>
-            <span>IP: ${item.ip_address}</span>
+            <span>📅 ${date}</span>
+            <span class="status ${statusClass}">🔐 Estado: ${status}</span>
+            <span>🌐 IP: ${item.ip_address}</span>
           </div>
         `;
         historyList.appendChild(listItem);
