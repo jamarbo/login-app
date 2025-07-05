@@ -136,7 +136,7 @@ app.post("/login", loginLimiter, loginValidation, validate, async (req, res) => 
 });
 
 app.post("/register", registerValidation, validate, async (req, res) => {
-  const { id, username, email, password } = req.body;
+  const { username, email, password } = req.body; // <-- MODIFICADO: sin 'id'
   try {
     // Verificar si el usuario o email ya existe
     const existingUser = await db.pool.query(
@@ -155,9 +155,9 @@ app.post("/register", registerValidation, validate, async (req, res) => {
     // Hash de la contraseña
     const hashedPassword = await hashPassword(password);
     
+    // MODIFICADO: Se quita 'id' del INSERT para que la BD lo genere.
     await db.pool.query(
       `INSERT INTO usuario (
-        id, 
         username, 
         email, 
         password, 
@@ -165,8 +165,8 @@ app.post("/register", registerValidation, validate, async (req, res) => {
         activo,
         intentos_fallidos,
         bloqueado_hasta
-      ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, true, 0, NULL)`,
-      [id, username, email, hashedPassword]
+      ) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, true, 0, NULL)`,
+      [username, email, hashedPassword] // <-- MODIFICADO: sin 'id'
     );
     res.json({ message: "Registro exitoso", success: true });
   } catch (error) {

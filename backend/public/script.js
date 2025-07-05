@@ -61,7 +61,6 @@ async function login() {
 }
 
 async function register() {
-  const id = parseInt(document.getElementById("register-id").value);
   const username = document.getElementById("register-username").value;
   const email = document.getElementById("register-email").value;
   const password = document.getElementById("register-password").value;
@@ -72,7 +71,7 @@ async function register() {
     const response = await fetch(`${baseUrl}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, username, email, password }),
+      body: JSON.stringify({ username, email, password }),
     });
 
     const result = await response.json();

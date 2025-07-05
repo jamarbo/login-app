@@ -40,9 +40,6 @@ export const registerValidation = [
         .withMessage('La contraseña debe tener al menos 6 caracteres')
         .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$/)
         .withMessage('La contraseña debe contener al menos una mayúscula, una minúscula y un número'),
-    body('id')
-        .isInt({ min: 1 })
-        .withMessage('El ID debe ser un número entero positivo')
 ];
 
 export const loginValidation = [
