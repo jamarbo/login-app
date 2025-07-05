@@ -1,7 +1,5 @@
-// Determinar la URL base según el ambiente
-const baseUrl = window.location.hostname === 'localhost' 
-  ? 'http://localhost:3000'
-  : 'https://tu-app.onrender.com'; // Reemplaza con tu URL de Render
+// CORREGIDO: Se usa window.location.origin para que la URL sea siempre correcta.
+const baseUrl = window.location.origin;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadProfile();

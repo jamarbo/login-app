@@ -1,7 +1,15 @@
+// CORREGIDO: Se usa window.location.origin para que la URL sea siempre correcta.
+const baseUrl = window.location.origin;
+
+// --- ELEMENTOS DEL DOM ---
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+const profileSection = document.getElementById('profile-section');
+
 // Determinar la URL base según el ambiente
-const baseUrl = window.location.hostname === 'localhost' 
-  ? 'http://localhost:3000'
-  : 'https://login-app-nd1m.onrender.com';
+// const baseUrl = window.location.hostname === 'localhost' 
+//   ? 'http://localhost:3000'
+//   : 'https://login-app-nd1m.onrender.com';
 
 async function updateStatus() {
   const element = document.getElementById('db-status'); // O el ID que corresponda
@@ -28,9 +36,6 @@ window.onload = () => {
 document.addEventListener("DOMContentLoaded", () => {
   const showRegisterLink = document.getElementById("show-register");
   const showLoginLink = document.getElementById("show-login");
-  const loginForm = document.getElementById("login-form");
-  const registerForm = document.getElementById("register-form");
-  const profileSection = document.getElementById("profile-section");
 
   // Mostrar el formulario de login por defecto y ocultar los demás
   loginForm.style.display = "block";
