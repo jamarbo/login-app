@@ -92,7 +92,6 @@ app.post("/login", loginLimiter, loginValidation, validate, async (req, res) => 
   let user = null;
   
   try {
-    // Primero buscamos al usuario
     const tableName = await db.getUserTableName();
     const result = await db.pool.query(
       `SELECT * FROM ${tableName} WHERE username = $1 AND activo = true`,
@@ -136,11 +135,12 @@ app.post("/login", loginLimiter, loginValidation, validate, async (req, res) => 
 });
 
 app.post("/register", registerValidation, validate, async (req, res) => {
-  const { username, email, password } = req.body; // <-- MODIFICADO: sin 'id'
+  const { username, email, password, avatarBase64 } = req.body;
   try {
+    const tableName = await db.getUserTableName();
     // Verificar si el usuario o email ya existe
     const existingUser = await db.pool.query(
-      "SELECT username, email FROM usuario WHERE username = $1 OR email = $2",
+      `SELECT username, email FROM ${tableName} WHERE username = $1 OR email = $2`,
       [username, email]
     );
     
@@ -155,218 +155,102 @@ app.post("/register", registerValidation, validate, async (req, res) => {
     // Hash de la contraseña
     const hashedPassword = await hashPassword(password);
     
-    // MODIFICADO: Se quita 'id' del INSERT para que la BD lo genere.
+    // MODIFICADO: Se añade avatar_base64 al INSERT
     await db.pool.query(
-      `INSERT INTO usuario (
+      `INSERT INTO ${tableName} (
         username, 
         email, 
         password, 
         fecha_creacion,
         activo,
         intentos_fallidos,
-        bloqueado_hasta
-      ) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, true, 0, NULL)`,
-      [username, email, hashedPassword] // <-- MODIFICADO: sin 'id'
+        bloqueado_hasta,
+        avatar_base64
+      ) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, true, 0, NULL, $4)`,
+      [username, email, hashedPassword, avatarBase64 || null] // Se usa null si no se envía avatar
     );
     res.json({ message: "Registro exitoso", success: true });
   } catch (error) {
     console.error("Error en registro:", error);
-    if (error.constraint === 'usuario_username_key') {
-      res.status(400).json({ message: "El nombre de usuario ya existe", success: false });
-    } else if (error.constraint === 'usuario_email_key') {
-      res.status(400).json({ message: "El email ya está registrado", success: false });
-    } else {
-      res.status(500).json({ message: "Error al registrar usuario", success: false });
-    }
+    res.status(500).json({ message: "Error en el registro" });
   }
 });
 
-// Endpoint para modificar el endpoint /profile y añadir avatar_url
+// Endpoint para obtener datos del perfil del usuario
 app.get("/profile", async (req, res) => {
   const userId = req.cookies.user;
+
   if (!userId) {
-    return res.status(401).json({ message: "No autenticado", success: false });
+    // Si no hay cookie de usuario, no está autorizado
+    return res.status(401).json({ message: "No autorizado: Inicie sesión" });
   }
 
   try {
-    // MODIFICADO: Seleccionar avatar_base64 en lugar de avatar_url
-    const result = await db.pool.query(
-      `SELECT 
-        id, 
-        username, 
-        email, 
-        fecha_ultimo_acceso,
-        fecha_creacion,
-        activo,
-        intentos_fallidos,
-        bloqueado_hasta,
-        avatar_base64 
-      FROM usuario 
-      WHERE id = $1 AND activo = true`,
+    const tableName = await db.getUserTableName();
+    // 1. Obtener los datos principales del usuario
+    const userResult = await db.pool.query(
+      `SELECT id, username, email, fecha_creacion, avatar_base64 
+       FROM ${tableName} WHERE id = $1`,
       [userId]
     );
-    if (result.rows.length > 0) {
-      const user = {
-        ...result.rows[0],
-        estado: result.rows[0].activo ? "Activo" : "Inactivo",
-        rol: "Usuario",
-        lastAccess: result.rows[0].fecha_ultimo_acceso,
-        // MODIFICADO: Usar el campo correcto para la URL del avatar
-        avatarUrl: result.rows[0].avatar_base64 
-      };
-      res.json({ success: true, user });
-    } else {
-      res.status(404).json({ message: "Usuario no encontrado", success: false });
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
-  } catch (error) {
-    console.error("Error al obtener perfil:", error);
-    res.status(500).json({ message: "Error al obtener perfil" });
-  }
-});
 
-app.post("/logout", (req, res) => {
-  res.clearCookie("user");
-  res.json({ message: "Logout exitoso" });
-});
+    const userProfile = userResult.rows[0];
 
-// 🧩 Esta es la línea que debes agregar para servir /login
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+    // 2. Obtener el historial de login del usuario usando la función de db.js
+    const history = await db.getLoginHistory(userId);
 
-// Middleware de autenticación
-const authenticateToken = (req, res, next) => {
-  const token = req.cookies.user;
-  if (!token) {
-    return res.status(401).json({ message: "No autenticado" });
-  }
-  req.user = { id: token }; // En este caso simple, el token es el ID del usuario
-  next();
-};
-
-// Endpoint para obtener historial de accesos
-app.get('/api/login-history', authenticateToken, async (req, res) => {
-  try {
-    // Asegurarnos de enviar JSON
-    res.setHeader('Content-Type', 'application/json');
-    
-    const userId = req.user.id;
-    console.log(`Obteniendo historial para usuario ID: ${userId}`);
-    
-    // Verificar si el usuario existe
-    const userTableName = await db.getUserTableName();
-    const userCheck = await db.pool.query(`SELECT id FROM ${userTableName} WHERE id = $1`, [userId]);
-    
-    if (userCheck.rows.length === 0) {
-      console.log(`Usuario con ID ${userId} no encontrado`);
-      return res.json({
-        success: false,
-        message: 'Usuario no encontrado',
-        history: []
-      });
-    }
-    
-    // Obtener el historial
-    const history = await db.getLoginHistory(userId, 10);
-    console.log(`Se encontraron ${history.length} registros de historial`);
-    
-    // Formatear las fechas para JSON
-    const formattedHistory = history.map(item => ({
-      ...item,
-      login_time: item.login_time instanceof Date ? item.login_time.toISOString() : item.login_time
-    }));
-    
+    // 3. Enviar ambos resultados al cliente
     res.json({
-      success: true,
-      history: formattedHistory
+      profile: userProfile,
+      history: history
     });
+
   } catch (error) {
-    console.error('Error al obtener historial:', error);
-    res.json({
-      success: false,
-      message: 'Error al obtener historial',
-      error: error.message,
-      history: []
-    });
+    console.error("Error al obtener el perfil:", error);
+    res.status(500).json({ message: "Error del servidor al obtener el perfil" });
   }
 });
 
-// Endpoint de diagnóstico para verificar API de historial
-app.get('/api/check-history-endpoint', authenticateToken, (req, res) => {
-  res.json({
-    success: true,
-    userId: req.user.id,
-    message: 'Endpoint de diagnóstico funcionando correctamente',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// REEMPLAZADO: Endpoint para subir avatar como Base64
-app.post('/api/upload-avatar', authenticateToken, async (req, res) => {
+// Endpoint para actualizar el avatar del usuario
+app.post("/api/upload-avatar", async (req, res) => {
+  const userId = req.cookies.user;
   const { avatarBase64 } = req.body;
-  const userId = req.user.id;
 
-  if (!avatarBase64) {
-    return res.status(400).json({ success: false, message: 'No se proporcionó ninguna imagen.' });
+  if (!userId) {
+    return res.status(401).json({ message: "No autorizado", success: false });
+  }
+
+  if (!avatarBase64 || !avatarBase64.startsWith('data:image')) {
+    return res.status(400).json({ message: "Formato de imagen no válido.", success: false });
   }
 
   try {
-    // Actualiza la base de datos con la cadena Base64
-    const result = await db.pool.query(
-      'UPDATE usuario SET avatar_base64 = $1 WHERE id = $2 RETURNING avatar_base64',
+    const tableName = await db.getUserTableName();
+    await db.pool.query(
+      `UPDATE ${tableName} SET avatar_base64 = $1 WHERE id = $2`,
       [avatarBase64, userId]
     );
-
-    if (result.rowCount > 0) {
-      res.json({ 
-        success: true, 
-        message: 'Avatar actualizado correctamente',
-        avatarUrl: result.rows[0].avatar_base64
-      });
-    } else {
-      res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
-    }
-  } catch (error) {
-    console.error('Error al guardar el avatar:', error);
-    res.status(500).json({ success: false, message: 'Error al guardar el avatar.' });
-  }
-});
-
-// Inicializar la base de datos al inicio
-(async () => {
-  try {
-    const connected = await db.testConnection();
-    if (connected) {
-      console.log('Conexión a la base de datos exitosa');
-      await db.initializeTables();
-      console.log('Tablas inicializadas correctamente');
-    } else {
-      console.error('No se pudo establecer conexión con la base de datos');
-    }
-  } catch (error) {
-    console.error('Error al inicializar tablas:', error);
-  }
-})();
-
-// Redirigir cualquier ruta desconocida a index.html (SPA)
-app.get("*", (req, res) => {
-  res.redirect("/index.html");
-});
-
-// Escuchar en el puerto especificado
-const server = app.listen(PORT, () => {
-  const url = process.env.NODE_ENV === 'production'
-    ? 'https://login-app-nd1m.onrender.com'
-    : `http://localhost:${PORT}`;
-  console.log(`Servidor iniciado en ${url}`);
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`El puerto ${PORT} está en uso. Intentando otro puerto...`);
-    server.close();
-    app.listen(0, () => {
-      console.log(`Servidor iniciado en http://localhost:${server.address().port}`);
+    res.json({ 
+      message: "Avatar actualizado correctamente.", 
+      success: true,
+      avatarUrl: avatarBase64 
     });
-  } else {
-    console.error('Error al iniciar el servidor:', err);
+  } catch (error) {
+    console.error("Error al actualizar el avatar:", error);
+    res.status(500).json({ message: "Error del servidor al actualizar el avatar.", success: false });
   }
+});
+
+// --- INICIO: Rutas de ejemplo (puedes eliminar o modificar) ---
+app.get("/api/ejemplo", (req, res) => {
+  res.json({ message: "¡Hola, mundo!" });
+});
+// --- FIN: Rutas de ejemplo ---
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

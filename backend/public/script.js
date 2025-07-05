@@ -3,22 +3,74 @@ const baseUrl = window.location.hostname === 'localhost'
   ? 'http://localhost:3000'
   : 'https://login-app-nd1m.onrender.com';
 
-window.onload = async () => {
+async function updateStatus() {
+  const element = document.getElementById('db-status'); // O el ID que corresponda
   try {
-    const res = await fetch(`${baseUrl}/check-connection`);
-    const data = await res.json();
-    updateStatus("db-status", data.message, "success");
-  } catch (e) {
-    console.error("Error conectando con la base de datos:", e);
-    updateStatus("db-status", "Error conectando con la base de datos", "error");
+    const response = await fetch(`${baseUrl}/check-connection`);
+    const data = await response.json();
+    if (element) { // <-- AÑADIR ESTA COMPROBACIÓN
+      element.innerText = data.message;
+      element.style.color = data.success ? 'lightgreen' : 'salmon';
+    }
+  } catch (error) {
+    if (element) { // <-- AÑADIR ESTA COMPROBACIÓN
+      element.innerText = 'Error conectando con el servidor.';
+      element.style.color = 'red';
+    }
+    console.error('Error al verificar la conexión:', error);
   }
+}
+
+window.onload = () => {
+  updateStatus();
 };
 
-function showForm(form) {
-  document.getElementById("login-form").classList.remove("active");
-  document.getElementById("register-form").classList.remove("active");
-  document.getElementById(`${form}-form`).classList.add("active");
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const showRegisterLink = document.getElementById("show-register");
+  const showLoginLink = document.getElementById("show-login");
+  const loginForm = document.getElementById("login-form");
+  const registerForm = document.getElementById("register-form");
+  const profileSection = document.getElementById("profile-section");
+
+  // Mostrar el formulario de login por defecto y ocultar los demás
+  loginForm.style.display = "block";
+  registerForm.style.display = "none";
+  profileSection.style.display = "none";
+
+  showRegisterLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    loginForm.style.display = "none";
+    registerForm.style.display = "block";
+    profileSection.style.display = "none";
+  });
+
+  showLoginLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    loginForm.style.display = "block";
+    registerForm.style.display = "none";
+    profileSection.style.display = "none";
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Manejador para la subida de avatar en el registro
+  const registerAvatarInput = document.getElementById('register-avatar-input');
+  const registerAvatarPreview = document.getElementById('register-avatar-preview');
+  const registerAvatarBase64 = document.getElementById('register-avatar-base64');
+
+  registerAvatarInput.addEventListener('change', () => {
+    const file = registerAvatarInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64String = e.target.result;
+        registerAvatarPreview.src = base64String;
+        registerAvatarBase64.value = base64String;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+});
 
 async function login() {
   const usernameInput = document.getElementById("login-username");
@@ -64,6 +116,7 @@ async function register() {
   const username = document.getElementById("register-username").value;
   const email = document.getElementById("register-email").value;
   const password = document.getElementById("register-password").value;
+  const avatarBase64 = document.getElementById("register-avatar-base64").value;
 
   showLoading("register-message");
 
@@ -71,7 +124,7 @@ async function register() {
     const response = await fetch(`${baseUrl}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, avatarBase64 }),
     });
 
     const result = await response.json();

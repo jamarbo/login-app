@@ -220,3 +220,86 @@ body.light-theme #theme-toggle {
   background: var(--light-bg-secondary);
   color: var(--light-text);
 }
+
+.container {
+  background-color: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.main-title {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.8em;
+}
+
+.welcome-text {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.avatar-container button {
+  margin-top: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease;
+}
+
+.avatar-container button:hover {
+  background-color: #0056b3;
+}
+
+/* Estilo específico para el botón en el formulario de registro si es necesario */
+#register-form .avatar-button {
+    background-color: #28a745;
+}
+
+#register-form .avatar-button:hover {
+    background-color: #218838;
+}
+
+.form-switcher {
+  margin-top: 20px;
+  font-size: 0.9em;
+}
+
+.form-switcher a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.form-switcher a:hover {
+  text-decoration: underline;
+}
+
+#profile-section {
+  display: none;
+  padding: 20px;
+}
+
+.form {
+  display: none; /* Oculta todos los formularios por defecto */
+  flex-direction: column;
+}
+
+/* Esto es opcional, pero asegura que el login se muestre si el JS falla */
+#login-form {
+    display: block;
+}

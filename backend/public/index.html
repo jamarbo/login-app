@@ -158,33 +158,116 @@
     .loading {
       color: #4f8cff;
     }
+
+    .main-title {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      color: #4f8cff;
+    }
+
+    .welcome-text {
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .avatar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 0.5rem;
+    }
+
+    .avatar-button {
+      background: #4f8cff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: clamp(0.8rem, 2.5vw, 1rem);
+    }
+
+    .avatar-button:hover {
+      background: #2563eb;
+    }
+
+    .form-switcher {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: clamp(0.8rem, 2.5vw, 1rem);
+      color: #bbb;
+    }
+
+    .form-switcher a {
+      color: #4f8cff;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .form-switcher a:hover {
+      color: #2563eb;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="tabs">
-      <button onclick="showForm('login')">Login</button>
-      <button onclick="showForm('register')">Registro</button>
-    </div>
-
+    <h1 class="main-title">Control de Tareas, Premios y Castigos</h1>
     <!-- LOGIN -->
-    <div id="login-form" class="form active">
+    <div id="login-form" class="form">
       <h2>Login</h2>
-      <p id="db-status">Verificando conexión...</p>
+      <p class="welcome-text">
+        ¡Bienvenido! Si ya tienes una cuenta, ingresa tus datos para continuar.
+        Si eres nuevo, por favor ve a la sección de Registro.
+      </p>
       <input type="text" id="login-username" placeholder="Usuario" autocomplete="username">
       <input type="password" id="login-password" placeholder="Contraseña" autocomplete="current-password">
       <button onclick="login()">Iniciar sesión</button>
-      <p id="login-message"></p>
+      <p id="login-message" class="message"></p>
+      <p class="form-switcher">¿No tienes cuenta? <a href="#" id="show-register">Regístrate</a></p>
     </div>
 
     <!-- REGISTRO -->
     <div id="register-form" class="form">
       <h2>Registro</h2>
+      <div class="avatar-container">
+        <img src="default-avatar.png" alt="Avatar" class="avatar-preview" id="register-avatar-preview">
+        <input type="file" id="register-avatar-input" accept="image/*" style="display: none;">
+        <input type="hidden" id="register-avatar-base64">
+        <button type="button" class="avatar-button" onclick="document.getElementById('register-avatar-input').click()">Subir Foto</button>
+      </div>
       <input type="text" id="register-username" placeholder="Usuario" autocomplete="username">
       <input type="email" id="register-email" placeholder="Correo" autocomplete="email">
       <input type="password" id="register-password" placeholder="Contraseña" autocomplete="new-password">
       <button onclick="register()">Registrarse</button>
-      <p id="register-message"></p>
+      <p id="register-message" class="message"></p>
+      <p class="form-switcher">¿Ya tienes una cuenta? <a href="#" id="show-login">Inicia sesión</a></p>
+    </div>
+
+    <!-- PERFIL -->
+    <div id="profile-section">
+      <h2>Perfil</h2>
+      <div class="avatar-container">
+        <img src="default-avatar.png" alt="Avatar" class="avatar-preview" id="profile-avatar-preview">
+        <input type="file" id="profile-avatar-input" accept="image/*" style="display: none;">
+        <input type="hidden" id="profile-avatar-base64">
+        <button type="button" class="avatar-button" onclick="document.getElementById('profile-avatar-input').click()">Cambiar Foto</button>
+      </div>
+      <input type="text" id="profile-username" placeholder="Usuario" autocomplete="username" readonly>
+      <input type="email" id="profile-email" placeholder="Correo" autocomplete="email" readonly>
+      <button id="edit-profile-button" onclick="enableProfileEditing()">Editar Perfil</button>
+      <button id="save-profile-button" onclick="saveProfile()" style="display: none;">Guardar Cambios</button>
+      <p id="profile-message" class="message"></p>
     </div>
   </div>
 
