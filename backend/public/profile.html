@@ -5,321 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Perfil de Usuario</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
-      color: #f0f0f0;
-      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 1rem;
-    }
-
-    .profile-container {
-      width: 100%;
-      max-width: 450px;
-      background: #2a2a2a;
-      border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-      padding: clamp(1.5rem, 5vw, 2.5rem);
-      text-align: center;
-      margin: 1rem;
-    }
-
-    .profile-avatar {
-      width: clamp(80px, 15vw, 120px);
-      height: clamp(80px, 15vw, 120px);
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 auto 1.5rem;
-      border: 3px solid #4f8cff;
-      background: #1f1f1f;
-      padding: 3px;
-      display: block;
-    }
-
-    .profile-welcome {
-      font-size: clamp(1.2rem, 4vw, 1.5rem);
-      color: #4f8cff;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
-      word-break: break-word;
-    }
-
-    .profile-info {
-      text-align: left;
-      margin: 1.5rem 0;
-      background: #1f1f1f;
-      padding: clamp(1rem, 3vw, 1.5rem);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .profile-info p {
-      margin: 0.7rem 0;
-      font-size: clamp(0.9rem, 2.5vw, 1rem);
-      color: #e0e0e0;
-      display: grid;
-      grid-template-columns: minmax(120px, auto) 1fr;
-      gap: 1rem;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #3a3a3a;
-      align-items: center;
-    }
-
-    .profile-info p:last-child {
-      border-bottom: none;
-    }
-
-    .profile-info strong {
-      color: #4f8cff;
-      white-space: nowrap;
-    }
-
-    .profile-info span {
-      word-break: break-word;
-    }
-
-    .buttons-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      justify-content: center;
-      margin-top: 1.5rem;
-    }
-
-    #logout-btn, #edit-btn {
-      flex: 1;
-      min-width: 120px;
-      max-width: 200px;
-      padding: clamp(0.6rem, 2vw, 0.8rem) clamp(1rem, 3vw, 1.5rem);
-      border: none;
-      border-radius: 6px;
-      font-size: clamp(0.9rem, 2.5vw, 1rem);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    #edit-btn {
-      background: #4f8cff;
-      color: #fff;
-    }
-
-    #logout-btn {
-      background: #1f1f1f;
-      color: #fff;
-      border: 1px solid #4f8cff;
-    }
-
-    #edit-btn:hover {
-      background: #2563eb;
-      transform: translateY(-2px);
-    }
-
-    #logout-btn:hover {
-      background: #2a2a2a;
-      transform: translateY(-2px);
-    }
-
-    /* Estilos para el historial de accesos */
-    .login-history {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      background: #1f1f1f;
-      border-radius: 8px;
-      text-align: left;
-    }
-    
-    .login-history h3 {
-      font-size: 1rem;
-      color: #4f8cff;
-      margin-bottom: 0.75rem;
-      text-align: center;
-    }
-    
-    .history-list {
-      max-height: 200px;
-      overflow-y: auto;
-      margin-bottom: 1rem;
-    }
-    
-    .history-list p {
-      margin: 0.5rem 0;
-      font-size: 0.9rem;
-    }
-    
-    .history-list .history-item {
-      padding: 0.5rem;
-      border-bottom: 1px solid #333;
-      display: flex;
-      justify-content: space-between;
-    }
-    
-    .history-list .history-item:last-child {
-      border-bottom: none;
-    }
-    
-    .text-center {
-      text-align: center;
-    }
-    
-    .text-error {
-      color: #ff6b6b;
-    }
-    
-    .text-success {
-      color: #4caf50;
-    }
-    
-    .secondary-btn {
-      background-color: #555;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      width: 100%;
-      transition: all 0.3s ease;
-    }
-    
-    .secondary-btn:hover {
-      background-color: #666;
-    }
-    
-    .notification {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 4px;
-      display: none;
-      z-index: 1000;
-    }
-
-    /* Estilos para el formulario de avatar */
-    .avatar-container {
-      position: relative;
-      margin-bottom: 1.5rem;
-      width: fit-content;
-      margin: 0 auto 1.5rem;
-    }
-
-    .avatar-edit {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 30px;
-      height: 30px;
-      background-color: #4f8cff;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      font-size: 16px;
-      color: #fff;
-      border: none;
-      padding: 0;
-    }
-
-    .avatar-edit:hover {
-      transform: scale(1.1);
-      background-color: #2563eb;
-    }
-
-    #avatar-form {
-      display: none;
-      margin-top: 1rem;
-      animation: fadeIn 0.3s ease;
-    }
-
-    #avatar-form.visible {
-      display: block;
-    }
-
-    #avatar-input {
-      margin-bottom: 10px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @media (max-width: 380px) {
-      .profile-info p {
-        grid-template-columns: 1fr;
-        gap: 0.3rem;
-      }
-
-      .buttons-container {
-        flex-direction: column;
-      }
-
-      #logout-btn, #edit-btn {
-        max-width: 100%;
-      }
-    }
-
-    @media (max-height: 600px) {
-      body {
-        align-items: flex-start;
-      }
-      
-      .profile-container {
-        margin: 0.5rem;
-        padding: 1rem;
-      }
-    }
-  </style>
+  <script src="theme-toggle.js" defer></script>
 </head>
 <body>
-  <button id="theme-toggle" aria-label="Cambiar tema" style="position:absolute;top:1rem;right:1rem;">
-    🌓
-  </button>
+  <button id="theme-toggle" aria-label="Cambiar tema">🌙</button>
+
   <div class="profile-container">
     <div class="avatar-container">
-      <img src="https://ui-avatars.com/api/?name=Usuario&background=4f8cff&color=fff&size=100" 
-           alt="Avatar" 
-           class="profile-avatar" 
-           id="profile-avatar">
-      <button class="avatar-edit" id="toggle-avatar-form" title="Cambiar avatar">
-        ✏️
-      </button>
+      <img src="" alt="Avatar de usuario" class="profile-avatar" id="profile-avatar">
+      <button id="toggle-avatar-form" class="avatar-edit" aria-label="Cambiar avatar">✏️</button>
     </div>
 
-    <!-- Formulario de subida de avatar -->
-    <form id="avatar-form" enctype="multipart/form-data">
+    <form id="avatar-form" class="hidden">
       <input type="file" id="avatar-input" name="avatar" accept="image/*">
       <button type="submit" class="secondary-btn">Cambiar Avatar</button>
     </form>
 
     <div class="profile-welcome" id="profile-welcome">¡Bienvenido!</div>
+    
     <div class="profile-info" id="profile-info">
-      <!-- Aquí se mostrará la información del usuario -->
+      <!-- La información del usuario se insertará aquí -->
     </div>
     
-    <!-- Sección de historial de accesos -->
     <div class="login-history">
       <h3>Historial de Accesos</h3>
       <div id="loginHistoryList" class="history-list">
         <p class="text-center">Cargando historial...</p>
       </div>
-      <!-- Botón de diagnóstico para depurar problemas -->
       <button id="diagnose-btn" class="secondary-btn">Diagnosticar Historial</button>
     </div>
     
@@ -329,10 +41,8 @@
     </div>
   </div>
   
-  <!-- Notificaciones -->
   <div id="notification" class="notification"></div>
   
   <script src="profile.js"></script>
 </body>
-<script src="theme-toggle.js"></script>
 </html>

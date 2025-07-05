@@ -68,7 +68,8 @@ export async function initializeTables() {
         fecha_ultimo_acceso TIMESTAMP WITH TIME ZONE,
         activo BOOLEAN DEFAULT true,
         intentos_fallidos INTEGER DEFAULT 0,
-        bloqueado_hasta TIMESTAMP WITH TIME ZONE
+        bloqueado_hasta TIMESTAMP WITH TIME ZONE,
+        avatar_base64 TEXT -- <-- AÑADIDO
       )
     `);
     

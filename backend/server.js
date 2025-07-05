@@ -1,15 +1,8 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
-// Importamos multer para manejar la subida de archivos
-import multer from "multer";
+// import bodyParser from "body-parser"; // No es necesario
+// import multer from "multer"; // <-- ELIMINAR
 import fs from "fs";
-
-// Solo cargar dotenv en desarrollo
-if (process.env.NODE_ENV !== 'production') {
-  const dotenv = await import('dotenv');
-  dotenv.config();
-}
 import path from "path";
 import { fileURLToPath } from "url";
 import * as db from "./db.js";
@@ -34,39 +27,9 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Crear la carpeta de avatares si no existe
-const avatarDir = path.join(__dirname, 'public', 'avatars');
-if (!fs.existsSync(avatarDir)) {
-  fs.mkdirSync(avatarDir, { recursive: true });
-}
-
-// Configuración para multer (subida de archivos)
-const avatarStorage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    const avatarDir = path.join(__dirname, 'public', 'avatars');
-    cb(null, avatarDir);
-  },
-  filename: function(req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, req.user.id + extension); // Usa el ID del usuario como nombre
-  }
-});
-
-const upload = multer({ 
-  storage: avatarStorage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // Límite de 2MB
-  fileFilter: function(req, file, cb) {
-    const filetypes = /jpeg|jpg|png|gif/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error('Solo se permiten imágenes (jpg, jpeg, png, gif)'));
-  }
-});
+// --- INICIO: Toda esta sección de Multer ha sido eliminada ---
+// El código de configuración de multer, avatarStorage y upload se ha quitado.
+// --- FIN: Toda esta sección de Multer ha sido eliminada ---
 
 // Middleware
 app.use(cors({
@@ -75,8 +38,12 @@ app.use(cors({
     : 'http://localhost:3000',
   credentials: true
 }));
-app.use(bodyParser.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
+
+// CORREGIDO: Usa solo express.json con el límite aumentado.
+// Asegúrate de que esta línea esté ANTES de tus rutas.
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 // Servir archivos estáticos desde /backend/public
 app.use(express.static(path.join(__dirname, "public")));
@@ -222,6 +189,7 @@ app.get("/profile", async (req, res) => {
   }
 
   try {
+    // MODIFICADO: Seleccionar avatar_base64 en lugar de avatar_url
     const result = await db.pool.query(
       `SELECT 
         id, 
@@ -232,7 +200,7 @@ app.get("/profile", async (req, res) => {
         activo,
         intentos_fallidos,
         bloqueado_hasta,
-        avatar_url
+        avatar_base64 
       FROM usuario 
       WHERE id = $1 AND activo = true`,
       [userId]
@@ -241,9 +209,10 @@ app.get("/profile", async (req, res) => {
       const user = {
         ...result.rows[0],
         estado: result.rows[0].activo ? "Activo" : "Inactivo",
-        rol: "Usuario", // Por defecto todos son tipo usuario
-        lastAccess: result.rows[0].fecha_ultimo_acceso, // Para mantener compatibilidad con el frontend
-        avatarUrl: result.rows[0].avatar_url // Añadimos la URL del avatar
+        rol: "Usuario",
+        lastAccess: result.rows[0].fecha_ultimo_acceso,
+        // MODIFICADO: Usar el campo correcto para la URL del avatar
+        avatarUrl: result.rows[0].avatar_base64 
       };
       res.json({ success: true, user });
     } else {
@@ -332,33 +301,34 @@ app.get('/api/check-history-endpoint', authenticateToken, (req, res) => {
   });
 });
 
-// Endpoint para subir avatar
-app.post('/api/upload-avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
+// REEMPLAZADO: Endpoint para subir avatar como Base64
+app.post('/api/upload-avatar', authenticateToken, async (req, res) => {
+  const { avatarBase64 } = req.body;
+  const userId = req.user.id;
+
+  if (!avatarBase64) {
+    return res.status(400).json({ success: false, message: 'No se proporcionó ninguna imagen.' });
+  }
+
   try {
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'No se ha subido ningún archivo' 
+    // Actualiza la base de datos con la cadena Base64
+    const result = await db.pool.query(
+      'UPDATE usuario SET avatar_base64 = $1 WHERE id = $2 RETURNING avatar_base64',
+      [avatarBase64, userId]
+    );
+
+    if (result.rowCount > 0) {
+      res.json({ 
+        success: true, 
+        message: 'Avatar actualizado correctamente',
+        avatarUrl: result.rows[0].avatar_base64
       });
+    } else {
+      res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
     }
-    
-    // La ruta del avatar relativa a la carpeta public
-    const avatarUrl = `/avatars/${req.file.filename}`;
-    
-    // Actualizar la URL del avatar en la base de datos
-    await db.updateUserAvatar(req.user.id, avatarUrl);
-    
-    res.json({ 
-      success: true, 
-      message: 'Avatar actualizado correctamente',
-      avatarUrl: avatarUrl
-    });
   } catch (error) {
-    console.error('Error al subir avatar:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error al subir avatar' 
-    });
+    console.error('Error al guardar el avatar:', error);
+    res.status(500).json({ success: false, message: 'Error al guardar el avatar.' });
   }
 });
 
