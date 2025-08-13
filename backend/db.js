@@ -20,15 +20,14 @@ pool.connect((err, client, release) => {
   if (err) {
     return console.error('Error al conectar con la base de datos:', err);
   }
-  // Llamamos a la función para asegurar que la tabla exista
-  ensureUsersTableExists(); 
+  // CORRECCIÓN: Llamamos a la nueva función
+  ensureTablesExist(); 
   release();
 });
 
-// --- NUEVA FUNCIÓN ---
-// Esta función crea la tabla 'users' si no existe
-async function ensureUsersTableExists() {
-  const createTableQuery = `
+// CORRECCIÓN: La función ahora crea ambas tablas
+async function ensureTablesExist() {
+  const createUsersTableQuery = `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       username VARCHAR(50) UNIQUE NOT NULL,
@@ -43,12 +42,23 @@ async function ensureUsersTableExists() {
     );
   `;
 
+  const createLoginHistoryTableQuery = `
+    CREATE TABLE IF NOT EXISTS login_history (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      success BOOLEAN NOT NULL,
+      ip_address VARCHAR(50),
+      login_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   try {
-    await pool.query(createTableQuery);
+    await pool.query(createUsersTableQuery);
     console.log("Tabla 'users' verificada/creada exitosamente.");
+    await pool.query(createLoginHistoryTableQuery);
+    console.log("Tabla 'login_history' verificada/creada exitosamente.");
   } catch (err) {
-    console.error("Error al crear la tabla 'users':", err);
-    // Si la creación de la tabla falla, es un error crítico, así que cerramos el proceso.
+    console.error("Error al crear las tablas:", err);
     process.exit(1);
   }
 }

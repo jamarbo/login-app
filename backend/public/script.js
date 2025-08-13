@@ -145,8 +145,14 @@ function showLoading(elementId) {
   element.className = "loading";
 }
 
+// REEMPLAZA ESTA FUNCIÓN COMPLETA
 function updateStatus(elementId, message, status) {
   const element = document.getElementById(elementId);
-  element.innerText = message;
-  element.className = status;
+  // CORRECCIÓN: Comprueba si el elemento existe antes de usarlo
+  if (element) {
+    element.innerText = message;
+    element.className = status;
+  } else {
+    console.log(`Status update for #${elementId}:`, message);
+  }
 }
