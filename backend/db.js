@@ -18,16 +18,40 @@ export const pool = new Pool(dbConfig);
 
 pool.connect((err, client, release) => {
   if (err) {
-    return console.error('Error al conectar con la base de datos:', err.stack);
+    return console.error('Error al conectar con la base de datos:', err);
   }
-  client.query('SELECT NOW()', (err, result) => {
-    release();
-    if (err) {
-      return console.error('Error ejecutando la consulta de prueba', err.stack);
-    }
-    console.log('Conexión a la base de datos exitosa:', result.rows[0]);
-  });
+  // Llamamos a la función para asegurar que la tabla exista
+  ensureUsersTableExists(); 
+  release();
 });
+
+// --- NUEVA FUNCIÓN ---
+// Esta función crea la tabla 'users' si no existe
+async function ensureUsersTableExists() {
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(50) UNIQUE NOT NULL,
+      email VARCHAR(100) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      fecha_ultimo_acceso TIMESTAMP WITH TIME ZONE,
+      activo BOOLEAN DEFAULT true,
+      intentos_fallidos INTEGER DEFAULT 0,
+      bloqueado_hasta TIMESTAMP WITH TIME ZONE,
+      avatar_base64 TEXT
+    );
+  `;
+
+  try {
+    await pool.query(createTableQuery);
+    console.log("Tabla 'users' verificada/creada exitosamente.");
+  } catch (err) {
+    console.error("Error al crear la tabla 'users':", err);
+    // Si la creación de la tabla falla, es un error crítico, así que cerramos el proceso.
+    process.exit(1);
+  }
+}
 
 export async function getUserTableName() {
   const result = await pool.query(`
